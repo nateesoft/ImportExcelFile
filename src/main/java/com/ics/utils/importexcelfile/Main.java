@@ -2,8 +2,20 @@ package com.ics.utils.importexcelfile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import javax.swing.BorderFactory;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingWorker;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JSpinner;
@@ -28,6 +40,7 @@ public class Main extends javax.swing.JFrame {
      */
     public Main() {
         initComponents();
+        setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
         DatabaseConnection.connect();
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
@@ -53,23 +66,39 @@ public class Main extends javax.swing.JFrame {
         txtDocDate = new javax.swing.JTextField();
         btnLoadFile = new javax.swing.JButton();
         btnDateDialog = new javax.swing.JButton();
+        cbChangeTheme = new javax.swing.JComboBox<>();
+        jLabel5 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tbFileData = new javax.swing.JTable();
-        jButton1 = new javax.swing.JButton();
+        btnSave = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Header"));
 
+        jLabel1.setFont(new java.awt.Font("Helvetica Neue", 0, 14)); // NOI18N
         jLabel1.setText("Document Number");
 
+        jLabel2.setFont(new java.awt.Font("Helvetica Neue", 0, 14)); // NOI18N
         jLabel2.setText("Document Date");
 
+        btnLoadFile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/ics/utils/importexcelfile/Excel-icon.png"))); // NOI18N
         btnLoadFile.setText("Load Document (Excel)");
+        btnLoadFile.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         btnLoadFile.addActionListener(this::btnLoadFileActionPerformed);
 
-        btnDateDialog.setText("...");
+        btnDateDialog.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/ics/utils/importexcelfile/Calendar-icon.png"))); // NOI18N
         btnDateDialog.addActionListener(this::btnDateDialogActionPerformed);
+
+        cbChangeTheme.setFont(new java.awt.Font("Helvetica Neue", 0, 14)); // NOI18N
+        cbChangeTheme.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "FlatLightLaf", "FlatDarkLaf" }));
+        cbChangeTheme.addItemListener(this::cbChangeThemeItemStateChanged);
+
+        jLabel5.setFont(new java.awt.Font("Helvetica Neue", 0, 14)); // NOI18N
+        jLabel5.setText("Theme");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -82,44 +111,69 @@ public class Main extends javax.swing.JFrame {
                     .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(btnLoadFile, javax.swing.GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE)
+                    .addComponent(btnLoadFile, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(txtDocumentNo)
                     .addComponent(txtDocDate))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnDateDialog)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnDateDialog, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(555, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cbChangeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(txtDocumentNo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel1)
+                            .addComponent(txtDocumentNo, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(cbChangeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel5)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtDocDate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDateDialog)
+                    .addComponent(txtDocDate, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDateDialog, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnLoadFile)
-                .addContainerGap(10, Short.MAX_VALUE))
+                .addComponent(btnLoadFile, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         tbFileData.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null},
+                {null},
+                {null},
+                {null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Data"
             }
         ));
         jScrollPane1.setViewportView(tbFileData);
 
-        jButton1.setText("Save Data");
+        btnSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/ics/utils/importexcelfile/icons8-save-32.png"))); // NOI18N
+        btnSave.setText("Save Data");
+        btnSave.addActionListener(this::btnSaveActionPerformed);
+
+        jLabel3.setFont(new java.awt.Font("Helvetica Neue", 0, 24)); // NOI18N
+        jLabel3.setText("Import Excel / Menu Items");
+
+        jLabel4.setForeground(new java.awt.Color(102, 102, 102));
+        jLabel4.setText("เลือกอัปโหลดไฟล์ Excel เพื่อดูข้อมูลสินค้า");
+
+        jLabel6.setFont(new java.awt.Font("Helvetica Neue", 0, 12)); // NOI18N
+        jLabel6.setForeground(new java.awt.Color(102, 102, 102));
+        jLabel6.setText("Application Version: 1.0_0.0.1_ Copy Right @ ICS 2026");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -130,21 +184,33 @@ public class Main extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 966, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 373, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton1)
-                .addContainerGap(25, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6))
+                .addGap(25, 25, 25))
         );
 
         pack();
@@ -158,26 +224,32 @@ public class Main extends javax.swing.JFrame {
         showDateSelected();
     }//GEN-LAST:event_btnDateDialogActionPerformed
 
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
+        saveDataIntoDatabase();
+    }//GEN-LAST:event_btnSaveActionPerformed
+
+    private void cbChangeThemeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbChangeThemeItemStateChanged
+        changeThemeApp();
+    }//GEN-LAST:event_cbChangeThemeItemStateChanged
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+            com.formdev.flatlaf.FlatLightLaf.setup();
+//            com.formdev.flatlaf.FlatDarkLaf.setup();
+        } catch (Exception ex) {
+            logger.log(java.util.logging.Level.WARNING, "FlatLaf unavailable, using default L&F", ex);
         }
-        //</editor-fold>
+
+        // Rounded corners & accent color (must be set after setup)
+        javax.swing.UIManager.put("Button.arc",          10);
+        javax.swing.UIManager.put("Component.arc",        8);
+        javax.swing.UIManager.put("TextComponent.arc",    6);
+        javax.swing.UIManager.put("ScrollBar.thumbArc", 999);
+        javax.swing.UIManager.put("ScrollBar.trackArc",  999);
+        javax.swing.UIManager.put("Component.accentColor", new java.awt.Color(0x2196F3));
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new Main().setVisible(true));
@@ -186,9 +258,14 @@ public class Main extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDateDialog;
     private javax.swing.JButton btnLoadFile;
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton btnSave;
+    private javax.swing.JComboBox<String> cbChangeTheme;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tbFileData;
@@ -264,6 +341,201 @@ public class Main extends javax.swing.JFrame {
         if (option == JOptionPane.OK_OPTION) {
             Date selected = (Date) datePicker.getValue();
             txtDocDate.setText(new SimpleDateFormat("dd/MM/yyyy").format(selected));
+        }
+    }
+
+
+    private String getStringValue(javax.swing.table.DefaultTableModel model, int row, String colName) {
+        for (int c = 0; c < model.getColumnCount(); c++) {
+            if (model.getColumnName(c).equalsIgnoreCase(colName)) {
+                Object val = model.getValueAt(row, c);
+                return val != null ? val.toString() : "";
+            }
+        }
+        return "";
+    }
+
+    private double getDoubleValue(javax.swing.table.DefaultTableModel model, int row, String colName) {
+        for (int c = 0; c < model.getColumnCount(); c++) {
+            if (model.getColumnName(c).equalsIgnoreCase(colName)) {
+                Object val = model.getValueAt(row, c);
+                if (val == null) return 0.0;
+                if (val instanceof Number num) return num.doubleValue();
+                try { return Double.parseDouble(val.toString()); }
+                catch (NumberFormatException ignore) { return 0.0; }
+            }
+        }
+        return 0.0;
+    }
+
+    // แปลง dd/MM/yyyy → yyyy-MM-dd สำหรับ MySQL
+    private String toMysqlDate(String dateStr) {
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd")
+                    .format(new SimpleDateFormat("dd/MM/yyyy").parse(dateStr));
+        } catch (ParseException ignore) {
+            return dateStr;
+        }
+    }
+
+    private void saveDataIntoDatabase() {
+        if (!DatabaseConnection.isConnected()) {
+            JOptionPane.showMessageDialog(this, "ไม่ได้เชื่อมต่อฐานข้อมูล", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String docNo   = txtDocumentNo.getText().trim();
+        String docDate = txtDocDate.getText().trim();
+
+        if (docNo.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "กรุณาระบุ Document Number", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        javax.swing.table.DefaultTableModel model =
+                (javax.swing.table.DefaultTableModel) tbFileData.getModel();
+
+        if (model.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "ไม่มีข้อมูลใน Table", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int totalRows = model.getRowCount();
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "ต้องการบันทึกข้อมูล Document No: " + docNo + "\nจำนวน " + totalRows + " รายการ ใช่หรือไม่?",
+                "ยืนยันการบันทึก",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        // --- Progress dialog ---
+        JDialog progressDialog = new JDialog(this, "กำลังบันทึกข้อมูล", true);
+        progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+
+        JProgressBar progressBar = new JProgressBar(0, totalRows);
+        progressBar.setStringPainted(true);
+        progressBar.setPreferredSize(new java.awt.Dimension(400, 28));
+
+        JLabel statusLabel = new JLabel("เริ่มต้นการบันทึก...", javax.swing.SwingConstants.CENTER);
+
+        JPanel panel = new JPanel(new java.awt.BorderLayout(0, 12));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
+        panel.add(statusLabel, java.awt.BorderLayout.NORTH);
+        panel.add(progressBar, java.awt.BorderLayout.CENTER);
+
+        progressDialog.add(panel);
+        progressDialog.pack();
+        progressDialog.setLocationRelativeTo(this);
+
+        // --- SwingWorker: DB บน background thread, update UI บน EDT ---
+        SwingWorker<Void, Integer> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                Connection conn = DatabaseConnection.getConnection();
+                try {
+                    conn.setAutoCommit(false);
+
+                    double total = 0;
+                    for (int r = 0; r < model.getRowCount(); r++) {
+                        total += getDoubleValue(model, r, "R_Amount");
+                    }
+
+                    String headerSql =
+                        "INSERT INTO htranout (R_No, R_Date, R_Remark, R_Bran, R_Total, R_User, R_Post, R_UserPost, R_PostDate, R_PostTime) "
+                      + "VALUES (?, ?, '', '', ?, '', 'N', '', null, '') "
+                      + "ON DUPLICATE KEY UPDATE R_Date=VALUES(R_Date), R_Total=VALUES(R_Total)";
+
+                    try (PreparedStatement ps = conn.prepareStatement(headerSql)) {
+                        ps.setString(1, docNo);
+                        ps.setString(2, toMysqlDate(docDate));
+                        ps.setDouble(3, total);
+                        ps.executeUpdate();
+                    }
+
+                    String detailSql =
+                        "INSERT INTO tranout (R_No, R_Que, R_PCode, R_Stock, R_Pack, R_Qty, R_Post, R_Unit, R_Cost, R_Amount, R_TotalQty, R_User, R_Time, R_EntryDate, R_Remark, R_Pqty) "
+                      + "VALUES (?, ?, ?, ?, ?, ?, 'N', ?, ?, ?, ?, '', '', CURDATE(), ?, ?) "
+                      + "ON DUPLICATE KEY UPDATE "
+                      + "  R_PCode=VALUES(R_PCode), R_Stock=VALUES(R_Stock), R_Pack=VALUES(R_Pack), "
+                      + "  R_Qty=VALUES(R_Qty), R_Unit=VALUES(R_Unit), R_Cost=VALUES(R_Cost), "
+                      + "  R_Amount=VALUES(R_Amount), R_TotalQty=VALUES(R_TotalQty), "
+                      + "  R_Remark=VALUES(R_Remark), R_Pqty=VALUES(R_Pqty)";
+
+                    try (PreparedStatement ps = conn.prepareStatement(detailSql)) {
+                        for (int r = 0; r < model.getRowCount(); r++) {
+                            ps.setString(1, docNo);
+                            ps.setInt   (2, r + 1);
+                            ps.setString(3, getStringValue(model, r, "R_PCode"));
+                            ps.setString(4, getStringValue(model, r, "R_Stock"));
+                            ps.setDouble(5, getDoubleValue(model, r, "R_Pack"));
+                            ps.setDouble(6, getDoubleValue(model, r, "R_Qty"));
+                            ps.setString(7, getStringValue(model, r, "R_Unit"));
+                            ps.setDouble(8, getDoubleValue(model, r, "R_Cost"));
+                            ps.setDouble(9, getDoubleValue(model, r, "R_Amount"));
+                            ps.setDouble(10, getDoubleValue(model, r, "R_TotalQty"));
+                            ps.setString(11, getStringValue(model, r, "R_Remark"));
+                            ps.setDouble(12, getDoubleValue(model, r, "R_Pqty"));
+                            ps.addBatch();
+                            publish(r + 1);
+                        }
+                        ps.executeBatch();
+                    }
+
+                    conn.commit();
+
+                } catch (SQLException ex) {
+                    try { conn.rollback(); } catch (SQLException ignore) {}
+                    throw ex;
+                } finally {
+                    try { conn.setAutoCommit(true); } catch (SQLException ignore) {}
+                }
+                return null;
+            }
+
+            @Override
+            protected void process(List<Integer> chunks) {
+                int current = chunks.get(chunks.size() - 1);
+                progressBar.setValue(current);
+                statusLabel.setText("กำลังบันทึก " + current + " / " + totalRows + " รายการ");
+            }
+
+            @Override
+            protected void done() {
+                progressDialog.dispose();
+                try {
+                    get();
+                    JOptionPane.showMessageDialog(Main.this,
+                            "บันทึกข้อมูลสำเร็จ " + totalRows + " รายการ",
+                            "Success", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                    logger.log(Level.SEVERE, "Failed to save data", cause);
+                    JOptionPane.showMessageDialog(Main.this,
+                            "เกิดข้อผิดพลาด: " + cause.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+
+        worker.execute();
+        progressDialog.setVisible(true); // blocks EDT จนกว่า done() จะ dispose dialog
+    }
+
+    private void changeThemeApp() {
+        String selected = (String) cbChangeTheme.getSelectedItem();
+        try {
+            javax.swing.LookAndFeel laf = switch (selected) {
+                case "FlatDarkLaf"  -> new com.formdev.flatlaf.FlatDarkLaf();
+                default             -> new com.formdev.flatlaf.FlatLightLaf();
+            };
+            javax.swing.UIManager.setLookAndFeel(laf);
+            javax.swing.SwingUtilities.updateComponentTreeUI(this);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            logger.log(Level.WARNING, "Cannot change theme", ex);
         }
     }
 }
