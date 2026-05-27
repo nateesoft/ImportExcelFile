@@ -30,10 +30,11 @@ public class ColumnMappingDialog extends JDialog {
     private static final String NONE         = "(ไม่ระบุ)";
     private static final String MAPPING_FILE = "column_mapping.properties";
 
-    // {fieldKey, displayLabel}  — ลำดับตรงกับ column ใน tranout
+    // {fieldKey, displayLabel}  — เฉพาะ field ที่ต้อง map จาก Excel
+    // R_No, R_Que => ใช้จาก form / auto-generate
+    // R_Time, R_EntryDate => CURTIME() / CURDATE()
+    // R_Remark, R_RefCode, R_SendInterface, RefCode, R_Pqty => NULL
     private static final String[][] FIELDS = {
-        {"R_No",       "เลขที่เอกสาร    (R_No)"},
-        {"R_Que",      "ลำดับ           (R_Que)"},
         {"R_PCode",    "รหัสสินค้า      (R_PCode)"},
         {"R_Stock",    "คลังสินค้า      (R_Stock)"},
         {"R_Pack",     "จำนวนแพ็ก       (R_Pack)"},
@@ -44,10 +45,7 @@ public class ColumnMappingDialog extends JDialog {
         {"R_Amount",   "ราคารวม         (R_Amount)"},
         {"R_TotalQty", "จำนวนรวม        (R_TotalQty)"},
         {"R_User",     "ผู้บันทึก       (R_User)"},
-        {"R_Time",     "เวลา            (R_Time)"},
-        {"R_EntryDate","วันที่บันทึก    (R_EntryDate)"},
-        {"R_Remark",   "หมายเหตุ        (R_Remark)"},
-        {"R_Pqty",     "จำนวนแพ็กรวม   (R_Pqty)"}
+        {"R_PName",    "ชื่อสินค้า      (R_PName)"},
     };
 
     private final Map<String, JComboBox<String>> combos = new LinkedHashMap<>();

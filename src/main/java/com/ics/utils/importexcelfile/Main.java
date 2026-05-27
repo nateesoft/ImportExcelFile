@@ -164,10 +164,7 @@ public class Main extends javax.swing.JFrame {
 
         tbFileData.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null},
-                {null},
-                {null},
-                {null}
+
             },
             new String [] {
                 "Data"
@@ -191,9 +188,6 @@ public class Main extends javax.swing.JFrame {
         jLabel6.setForeground(new java.awt.Color(102, 102, 102));
         jLabel6.setText("Application Version: 1.0:0.0.1_ Copy Right @ ICS 2026");
 
-        lbDisplayTotal.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
-        lbDisplayTotal.setText("จำนวนรายการ: 0 แถว");
-
         btnExit.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         btnExit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/ics/utils/importexcelfile/icons8-cancel-32.png"))); // NOI18N
         btnExit.setText("ปิดโปรแกรม (Close)");
@@ -215,8 +209,6 @@ public class Main extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel6)
-                        .addGap(18, 18, 18)
-                        .addComponent(lbDisplayTotal)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btnExit)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -239,9 +231,7 @@ public class Main extends javax.swing.JFrame {
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel6)
-                        .addComponent(lbDisplayTotal)))
+                    .addComponent(jLabel6))
                 .addGap(25, 25, 25))
         );
 
@@ -279,6 +269,8 @@ public class Main extends javax.swing.JFrame {
     }
 
     public static void main(String args[]) {
+        LoggerSetup.init();
+
         try {
             com.formdev.flatlaf.FlatLightLaf.setup();
         } catch (Exception ex) {
@@ -360,7 +352,7 @@ public class Main extends javax.swing.JFrame {
                             rowData[c] = switch (cell.getCellType()) {
                                 case NUMERIC -> cell.getNumericCellValue();
                                 case BOOLEAN -> cell.getBooleanCellValue();
-                                default -> ThaiUtil.ASCII2Unicode(cell.toString());
+                                default -> cell.toString();
                             };
                         }
                     }
@@ -370,11 +362,51 @@ public class Main extends javax.swing.JFrame {
 
             tbFileData.setModel(model);
             lbDisplayTotal.setText("จำนวนรายการ: " + model.getRowCount() + " แถว");
+            styleTable();
 
         } catch (java.io.IOException ex) {
             logger.log(java.util.logging.Level.SEVERE, "Failed to read Excel file", ex);
         }
     }
+
+    private void styleTable() {
+        tbFileData.setRowHeight(30);
+        tbFileData.setFont(new java.awt.Font("Tahoma", java.awt.Font.PLAIN, 13));
+        tbFileData.setShowHorizontalLines(true);
+        tbFileData.setShowVerticalLines(true);
+        tbFileData.setGridColor(new java.awt.Color(220, 220, 220));
+        tbFileData.setSelectionBackground(new java.awt.Color(0x2196F3));
+        tbFileData.setSelectionForeground(java.awt.Color.WHITE);
+        tbFileData.setIntercellSpacing(new java.awt.Dimension(1, 0));
+        tbFileData.setFillsViewportHeight(true);
+
+        javax.swing.table.JTableHeader header = tbFileData.getTableHeader();
+        header.setFont(new java.awt.Font("Tahoma", java.awt.Font.BOLD, 13));
+        header.setBackground(new java.awt.Color(0x1565C0));
+        header.setForeground(java.awt.Color.WHITE);
+        header.setPreferredSize(new java.awt.Dimension(header.getWidth(), 35));
+        header.setReorderingAllowed(false);
+
+        tbFileData.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+            private final java.awt.Color ODD_ROW  = new java.awt.Color(0xF0F6FF);
+            private final java.awt.Color EVEN_ROW = java.awt.Color.WHITE;
+
+            @Override
+            public java.awt.Component getTableCellRendererComponent(
+                    javax.swing.JTable table, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int column) {
+                super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                setFont(new java.awt.Font("Tahoma", java.awt.Font.PLAIN, 13));
+                if (!isSelected) {
+                    setBackground(row % 2 == 0 ? EVEN_ROW : ODD_ROW);
+                    setForeground(new java.awt.Color(0x212121));
+                }
+                setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 8, 0, 8));
+                return this;
+            }
+        });
+    }
+
 
     private void showDateSelected() {
         SpinnerDateModel dateModel = new SpinnerDateModel();
@@ -530,36 +562,32 @@ public class Main extends javax.swing.JFrame {
                         ps.executeUpdate();
                     }
 
-                    String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-
+                    // R_No จาก form, R_Que auto-generate, R_Time=CURTIME(), R_EntryDate=CURDATE()
+                    // R_Remark, R_RefCode, R_SendInterface, RefCode, R_Pqty = NULL
                     String detailSql =
-                        "INSERT INTO tranout (R_No, R_Que, R_PCode, R_Stock, R_Pack, R_Qty, R_Post, R_Unit, R_Cost, R_Amount, R_TotalQty, R_User, R_Time, R_EntryDate, R_Remark, R_Pqty) "
-                      + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                        "INSERT INTO tranout (R_No, R_Que, R_PCode, R_Stock, R_Pack, R_Qty, R_Post, R_Unit, R_Cost, R_Amount, R_TotalQty, R_User, R_Time, R_EntryDate, R_Remark, R_RefCode, R_SendInterface, RefCode, R_PName, R_Pqty) "
+                      + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURTIME(), CURDATE(), NULL, NULL, NULL, NULL, ?, NULL) "
                       + "ON DUPLICATE KEY UPDATE "
                       + "  R_PCode=VALUES(R_PCode), R_Stock=VALUES(R_Stock), R_Pack=VALUES(R_Pack), "
                       + "  R_Qty=VALUES(R_Qty), R_Post=VALUES(R_Post), R_Unit=VALUES(R_Unit), "
                       + "  R_Cost=VALUES(R_Cost), R_Amount=VALUES(R_Amount), R_TotalQty=VALUES(R_TotalQty), "
-                      + "  R_User=VALUES(R_User), R_Time=VALUES(R_Time), R_EntryDate=VALUES(R_EntryDate), "
-                      + "  R_Remark=VALUES(R_Remark), R_Pqty=VALUES(R_Pqty)";
+                      + "  R_User=VALUES(R_User), R_PName=VALUES(R_PName)";
 
                     try (PreparedStatement ps = conn.prepareStatement(detailSql)) {
                         for (int r = 0; r < model.getRowCount(); r++) {
-                            ps.setString(1,  mappedStr(model, r, columnMapping, "R_No",        docNo));
-                            ps.setInt   (2,  (int) mappedDbl(model, r, columnMapping, "R_Que", r + 1));
-                            ps.setString(3,  mappedStr(model, r, columnMapping, "R_PCode",     ""));
-                            ps.setString(4,  mappedStr(model, r, columnMapping, "R_Stock",     ""));
-                            ps.setDouble(5,  mappedDbl(model, r, columnMapping, "R_Pack",      1.0));
-                            ps.setDouble(6,  mappedDbl(model, r, columnMapping, "R_Qty",       0.0));
-                            ps.setString(7,  mappedStr(model, r, columnMapping, "R_Post",      "N"));
-                            ps.setString(8,  mappedStr(model, r, columnMapping, "R_Unit",      ""));
-                            ps.setDouble(9,  mappedDbl(model, r, columnMapping, "R_Cost",      0.0));
-                            ps.setDouble(10, mappedDbl(model, r, columnMapping, "R_Amount",    0.0));
-                            ps.setDouble(11, mappedDbl(model, r, columnMapping, "R_TotalQty",  0.0));
-                            ps.setString(12, mappedStr(model, r, columnMapping, "R_User",      ""));
-                            ps.setString(13, mappedStr(model, r, columnMapping, "R_Time",      ""));
-                            ps.setString(14, mappedStr(model, r, columnMapping, "R_EntryDate", today));
-                            ps.setString(15, mappedStr(model, r, columnMapping, "R_Remark",    ""));
-                            ps.setDouble(16, mappedDbl(model, r, columnMapping, "R_Pqty",      0.0));
+                            ps.setString(1,  ThaiUtil.Unicode2ASCII(docNo));
+                            ps.setInt   (2,  r + 1);
+                            ps.setString(3,  mappedStr(model, r, columnMapping, "R_PCode",    ""));
+                            ps.setString(4,  mappedStr(model, r, columnMapping, "R_Stock",    ""));
+                            ps.setDouble(5,  mappedDbl(model, r, columnMapping, "R_Pack",     1.0));
+                            ps.setDouble(6,  mappedDbl(model, r, columnMapping, "R_Qty",      0.0));
+                            ps.setString(7,  mappedStr(model, r, columnMapping, "R_Post",     "N"));
+                            ps.setString(8,  mappedStr(model, r, columnMapping, "R_Unit",     ""));
+                            ps.setDouble(9,  mappedDbl(model, r, columnMapping, "R_Cost",     0.0));
+                            ps.setDouble(10, mappedDbl(model, r, columnMapping, "R_Amount",   0.0));
+                            ps.setDouble(11, mappedDbl(model, r, columnMapping, "R_TotalQty", 0.0));
+                            ps.setString(12, mappedStr(model, r, columnMapping, "R_User",     ""));
+                            ps.setString(13, mappedStr(model, r, columnMapping, "R_PName",    ""));
                             ps.addBatch();
                             publish(r + 1);
                         }
@@ -592,12 +620,16 @@ public class Main extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(Main.this,
                             "บันทึกข้อมูลสำเร็จ " + totalRows + " รายการ",
                             "Success", JOptionPane.INFORMATION_MESSAGE);
-                } catch (Exception ex) {
-                    Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                } catch (java.util.concurrent.ExecutionException ex) {
+                    Throwable cause = ex.getCause();
+                    if (cause == null) cause = ex;
                     logger.log(Level.SEVERE, "Failed to save data", cause);
                     JOptionPane.showMessageDialog(Main.this,
                             "เกิดข้อผิดพลาด: " + cause.getMessage(),
                             "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    logger.log(Level.SEVERE, "Save operation interrupted", ex);
                 }
             }
         };
