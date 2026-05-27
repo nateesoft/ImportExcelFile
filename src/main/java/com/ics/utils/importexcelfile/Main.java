@@ -41,6 +41,7 @@ public class Main extends javax.swing.JFrame {
      */
     public Main() {
         initComponents();
+        setIconImage(new javax.swing.ImageIcon(getClass().getResource("/com/ics/utils/importexcelfile/Excel-icon.png")).getImage());
         setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
         DatabaseConnection.connect();
         addWindowListener(new java.awt.event.WindowAdapter() {
