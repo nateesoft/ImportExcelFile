@@ -9,6 +9,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
@@ -68,25 +69,28 @@ public class Main extends javax.swing.JFrame {
         btnDateDialog = new javax.swing.JButton();
         cbChangeTheme = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
+        lbDisplayTotal = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tbFileData = new javax.swing.JTable();
         btnSave = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
+        btnExit = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Header"));
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "ข้อมูลเอกสาร", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 13))); // NOI18N
 
-        jLabel1.setFont(new java.awt.Font("Helvetica Neue", 0, 14)); // NOI18N
-        jLabel1.setText("Document Number");
+        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel1.setText("เลขที่เอกสาร (S_NO)");
 
-        jLabel2.setFont(new java.awt.Font("Helvetica Neue", 0, 14)); // NOI18N
-        jLabel2.setText("Document Date");
+        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel2.setText("วันที่สร้าง");
 
+        btnLoadFile.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         btnLoadFile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/ics/utils/importexcelfile/Excel-icon.png"))); // NOI18N
-        btnLoadFile.setText("Load Document (Excel)");
+        btnLoadFile.setText("เลือกไฟล์สำหรับ Upload");
         btnLoadFile.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         btnLoadFile.addActionListener(this::btnLoadFileActionPerformed);
 
@@ -97,8 +101,12 @@ public class Main extends javax.swing.JFrame {
         cbChangeTheme.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "FlatLightLaf", "FlatDarkLaf" }));
         cbChangeTheme.addItemListener(this::cbChangeThemeItemStateChanged);
 
-        jLabel5.setFont(new java.awt.Font("Helvetica Neue", 0, 14)); // NOI18N
-        jLabel5.setText("Theme");
+        jLabel5.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel5.setText("เลือก Template");
+
+        lbDisplayTotal.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        lbDisplayTotal.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        lbDisplayTotal.setText("จำนวนทั้งหมด 0 แถว");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -114,17 +122,20 @@ public class Main extends javax.swing.JFrame {
                     .addComponent(btnLoadFile, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(txtDocumentNo)
                     .addComponent(txtDocDate))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnDateDialog, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(555, Short.MAX_VALUE))
+                        .addGap(0, 536, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel5)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cbChangeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())))
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel5)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(cbChangeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(lbDisplayTotal, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 518, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -139,12 +150,15 @@ public class Main extends javax.swing.JFrame {
                         .addComponent(cbChangeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jLabel5)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtDocDate, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDateDialog, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnLoadFile, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtDocDate, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnDateDialog, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel2))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnLoadFile, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(lbDisplayTotal))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -161,19 +175,29 @@ public class Main extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(tbFileData);
 
+        btnSave.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         btnSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/ics/utils/importexcelfile/icons8-save-32.png"))); // NOI18N
-        btnSave.setText("Save Data");
+        btnSave.setText("บันทึกเอกสาร");
         btnSave.addActionListener(this::btnSaveActionPerformed);
 
-        jLabel3.setFont(new java.awt.Font("Helvetica Neue", 0, 24)); // NOI18N
+        jLabel3.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         jLabel3.setText("Import Excel / Menu Items");
 
+        jLabel4.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel4.setForeground(new java.awt.Color(102, 102, 102));
         jLabel4.setText("เลือกอัปโหลดไฟล์ Excel เพื่อดูข้อมูลสินค้า");
 
-        jLabel6.setFont(new java.awt.Font("Helvetica Neue", 0, 12)); // NOI18N
+        jLabel6.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel6.setForeground(new java.awt.Color(102, 102, 102));
-        jLabel6.setText("Application Version: 1.0_0.0.1_ Copy Right @ ICS 2026");
+        jLabel6.setText("Application Version: 1.0:0.0.1_ Copy Right @ ICS 2026");
+
+        lbDisplayTotal.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        lbDisplayTotal.setText("จำนวนรายการ: 0 แถว");
+
+        btnExit.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        btnExit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/ics/utils/importexcelfile/icons8-cancel-32.png"))); // NOI18N
+        btnExit.setText("ปิดโปรแกรม (Close)");
+        btnExit.addActionListener(this::btnExitActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -191,7 +215,11 @@ public class Main extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel6)
+                        .addGap(18, 18, 18)
+                        .addComponent(lbDisplayTotal)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnExit)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
@@ -205,11 +233,15 @@ public class Main extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 373, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel6)
+                        .addComponent(lbDisplayTotal)))
                 .addGap(25, 25, 25))
         );
 
@@ -232,16 +264,28 @@ public class Main extends javax.swing.JFrame {
         changeThemeApp();
     }//GEN-LAST:event_cbChangeThemeItemStateChanged
 
+    private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
+        closeApplication();
+    }//GEN-LAST:event_btnExitActionPerformed
+
     /**
      * @param args the command line arguments
      */
+    private static void applyThaiFont() {
+        // FlatLaf bundles "Inter" font which has no Thai glyphs.
+        // Override defaultFont with Tahoma which ships with every Windows version and supports Thai.
+        javax.swing.UIManager.put("defaultFont",
+            new javax.swing.plaf.FontUIResource("Tahoma", java.awt.Font.PLAIN, 13));
+    }
+
     public static void main(String args[]) {
         try {
             com.formdev.flatlaf.FlatLightLaf.setup();
-//            com.formdev.flatlaf.FlatDarkLaf.setup();
         } catch (Exception ex) {
             logger.log(java.util.logging.Level.WARNING, "FlatLaf unavailable, using default L&F", ex);
         }
+
+        applyThaiFont();
 
         // Rounded corners & accent color (must be set after setup)
         javax.swing.UIManager.put("Button.arc",          10);
@@ -257,6 +301,7 @@ public class Main extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDateDialog;
+    private javax.swing.JButton btnExit;
     private javax.swing.JButton btnLoadFile;
     private javax.swing.JButton btnSave;
     private javax.swing.JComboBox<String> cbChangeTheme;
@@ -268,6 +313,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lbDisplayTotal;
     private javax.swing.JTable tbFileData;
     private javax.swing.JTextField txtDocDate;
     private javax.swing.JTextField txtDocumentNo;
@@ -314,7 +360,7 @@ public class Main extends javax.swing.JFrame {
                             rowData[c] = switch (cell.getCellType()) {
                                 case NUMERIC -> cell.getNumericCellValue();
                                 case BOOLEAN -> cell.getBooleanCellValue();
-                                default -> cell.toString();
+                                default -> ThaiUtil.ASCII2Unicode(cell.toString());
                             };
                         }
                     }
@@ -323,6 +369,7 @@ public class Main extends javax.swing.JFrame {
             }
 
             tbFileData.setModel(model);
+            lbDisplayTotal.setText("จำนวนรายการ: " + model.getRowCount() + " แถว");
 
         } catch (java.io.IOException ex) {
             logger.log(java.util.logging.Level.SEVERE, "Failed to read Excel file", ex);
@@ -366,6 +413,21 @@ public class Main extends javax.swing.JFrame {
             }
         }
         return 0.0;
+    }
+
+    /** ดึงค่า String จาก mapping แล้ว convert ด้วย ThaiUtil.Unicode2ASCII */
+    private String mappedStr(javax.swing.table.DefaultTableModel model, int row,
+                              Map<String, String> mapping, String field, String defaultVal) {
+        String col = mapping.get(field);
+        String val = (col != null) ? getStringValue(model, row, col) : defaultVal;
+        return ThaiUtil.Unicode2ASCII(val);
+    }
+
+    /** ดึงค่า double จาก mapping หรือใช้ค่า default */
+    private double mappedDbl(javax.swing.table.DefaultTableModel model, int row,
+                              Map<String, String> mapping, String field, double defaultVal) {
+        String col = mapping.get(field);
+        return (col != null) ? getDoubleValue(model, row, col) : defaultVal;
     }
 
     // แปลง dd/MM/yyyy → yyyy-MM-dd สำหรับ MySQL
@@ -412,6 +474,18 @@ public class Main extends javax.swing.JFrame {
             return;
         }
 
+        // --- Column mapping dialog ---
+        String[] tableColumns = new String[model.getColumnCount()];
+        for (int c = 0; c < model.getColumnCount(); c++) {
+            tableColumns[c] = model.getColumnName(c);
+        }
+        ColumnMappingDialog mappingDialog = new ColumnMappingDialog(this, tableColumns);
+        mappingDialog.setVisible(true);
+        if (!mappingDialog.isConfirmed()) {
+            return;
+        }
+        Map<String, String> columnMapping = mappingDialog.getMapping();
+
         // --- Progress dialog ---
         JDialog progressDialog = new JDialog(this, "กำลังบันทึกข้อมูล", true);
         progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
@@ -441,7 +515,7 @@ public class Main extends javax.swing.JFrame {
 
                     double total = 0;
                     for (int r = 0; r < model.getRowCount(); r++) {
-                        total += getDoubleValue(model, r, "R_Amount");
+                        total += mappedDbl(model, r, columnMapping, "R_Amount", 0.0);
                     }
 
                     String headerSql =
@@ -450,35 +524,42 @@ public class Main extends javax.swing.JFrame {
                       + "ON DUPLICATE KEY UPDATE R_Date=VALUES(R_Date), R_Total=VALUES(R_Total)";
 
                     try (PreparedStatement ps = conn.prepareStatement(headerSql)) {
-                        ps.setString(1, docNo);
+                        ps.setString(1, ThaiUtil.Unicode2ASCII(docNo));
                         ps.setString(2, toMysqlDate(docDate));
                         ps.setDouble(3, total);
                         ps.executeUpdate();
                     }
 
+                    String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+
                     String detailSql =
                         "INSERT INTO tranout (R_No, R_Que, R_PCode, R_Stock, R_Pack, R_Qty, R_Post, R_Unit, R_Cost, R_Amount, R_TotalQty, R_User, R_Time, R_EntryDate, R_Remark, R_Pqty) "
-                      + "VALUES (?, ?, ?, ?, ?, ?, 'N', ?, ?, ?, ?, '', '', CURDATE(), ?, ?) "
+                      + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
                       + "ON DUPLICATE KEY UPDATE "
                       + "  R_PCode=VALUES(R_PCode), R_Stock=VALUES(R_Stock), R_Pack=VALUES(R_Pack), "
-                      + "  R_Qty=VALUES(R_Qty), R_Unit=VALUES(R_Unit), R_Cost=VALUES(R_Cost), "
-                      + "  R_Amount=VALUES(R_Amount), R_TotalQty=VALUES(R_TotalQty), "
+                      + "  R_Qty=VALUES(R_Qty), R_Post=VALUES(R_Post), R_Unit=VALUES(R_Unit), "
+                      + "  R_Cost=VALUES(R_Cost), R_Amount=VALUES(R_Amount), R_TotalQty=VALUES(R_TotalQty), "
+                      + "  R_User=VALUES(R_User), R_Time=VALUES(R_Time), R_EntryDate=VALUES(R_EntryDate), "
                       + "  R_Remark=VALUES(R_Remark), R_Pqty=VALUES(R_Pqty)";
 
                     try (PreparedStatement ps = conn.prepareStatement(detailSql)) {
                         for (int r = 0; r < model.getRowCount(); r++) {
-                            ps.setString(1, docNo);
-                            ps.setInt   (2, r + 1);
-                            ps.setString(3, getStringValue(model, r, "R_PCode"));
-                            ps.setString(4, getStringValue(model, r, "R_Stock"));
-                            ps.setDouble(5, getDoubleValue(model, r, "R_Pack"));
-                            ps.setDouble(6, getDoubleValue(model, r, "R_Qty"));
-                            ps.setString(7, getStringValue(model, r, "R_Unit"));
-                            ps.setDouble(8, getDoubleValue(model, r, "R_Cost"));
-                            ps.setDouble(9, getDoubleValue(model, r, "R_Amount"));
-                            ps.setDouble(10, getDoubleValue(model, r, "R_TotalQty"));
-                            ps.setString(11, getStringValue(model, r, "R_Remark"));
-                            ps.setDouble(12, getDoubleValue(model, r, "R_Pqty"));
+                            ps.setString(1,  mappedStr(model, r, columnMapping, "R_No",        docNo));
+                            ps.setInt   (2,  (int) mappedDbl(model, r, columnMapping, "R_Que", r + 1));
+                            ps.setString(3,  mappedStr(model, r, columnMapping, "R_PCode",     ""));
+                            ps.setString(4,  mappedStr(model, r, columnMapping, "R_Stock",     ""));
+                            ps.setDouble(5,  mappedDbl(model, r, columnMapping, "R_Pack",      1.0));
+                            ps.setDouble(6,  mappedDbl(model, r, columnMapping, "R_Qty",       0.0));
+                            ps.setString(7,  mappedStr(model, r, columnMapping, "R_Post",      "N"));
+                            ps.setString(8,  mappedStr(model, r, columnMapping, "R_Unit",      ""));
+                            ps.setDouble(9,  mappedDbl(model, r, columnMapping, "R_Cost",      0.0));
+                            ps.setDouble(10, mappedDbl(model, r, columnMapping, "R_Amount",    0.0));
+                            ps.setDouble(11, mappedDbl(model, r, columnMapping, "R_TotalQty",  0.0));
+                            ps.setString(12, mappedStr(model, r, columnMapping, "R_User",      ""));
+                            ps.setString(13, mappedStr(model, r, columnMapping, "R_Time",      ""));
+                            ps.setString(14, mappedStr(model, r, columnMapping, "R_EntryDate", today));
+                            ps.setString(15, mappedStr(model, r, columnMapping, "R_Remark",    ""));
+                            ps.setDouble(16, mappedDbl(model, r, columnMapping, "R_Pqty",      0.0));
                             ps.addBatch();
                             publish(r + 1);
                         }
@@ -533,9 +614,14 @@ public class Main extends javax.swing.JFrame {
                 default             -> new com.formdev.flatlaf.FlatLightLaf();
             };
             javax.swing.UIManager.setLookAndFeel(laf);
+            applyThaiFont();
             javax.swing.SwingUtilities.updateComponentTreeUI(this);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             logger.log(Level.WARNING, "Cannot change theme", ex);
         }
+    }
+
+    private void closeApplication() {
+        System.exit(0);
     }
 }
