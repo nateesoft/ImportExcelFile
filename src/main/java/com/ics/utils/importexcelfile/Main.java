@@ -1,5 +1,7 @@
 package com.ics.utils.importexcelfile;
 
+import java.awt.Frame;
+import java.awt.Point;
 import java.io.File;
 import java.io.FileInputStream;
 import java.sql.Connection;
@@ -7,8 +9,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.swing.BorderFactory;
@@ -19,9 +21,8 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerDateModel;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -33,7 +34,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  * @author nateelive
  */
 public class Main extends javax.swing.JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Main.class.getName());
 
     /**
@@ -266,7 +267,7 @@ public class Main extends javax.swing.JFrame {
         // FlatLaf bundles "Inter" font which has no Thai glyphs.
         // Override defaultFont with Tahoma which ships with every Windows version and supports Thai.
         javax.swing.UIManager.put("defaultFont",
-            new javax.swing.plaf.FontUIResource("Tahoma", java.awt.Font.PLAIN, 13));
+                new javax.swing.plaf.FontUIResource("Tahoma", java.awt.Font.PLAIN, 13));
     }
 
     public static void main(String args[]) {
@@ -281,11 +282,11 @@ public class Main extends javax.swing.JFrame {
         applyThaiFont();
 
         // Rounded corners & accent color (must be set after setup)
-        javax.swing.UIManager.put("Button.arc",          10);
-        javax.swing.UIManager.put("Component.arc",        8);
-        javax.swing.UIManager.put("TextComponent.arc",    6);
+        javax.swing.UIManager.put("Button.arc", 10);
+        javax.swing.UIManager.put("Component.arc", 8);
+        javax.swing.UIManager.put("TextComponent.arc", 6);
         javax.swing.UIManager.put("ScrollBar.thumbArc", 999);
-        javax.swing.UIManager.put("ScrollBar.trackArc",  999);
+        javax.swing.UIManager.put("ScrollBar.trackArc", 999);
         javax.swing.UIManager.put("Component.accentColor", new java.awt.Color(0x2196F3));
 
         /* Create and display the form */
@@ -324,8 +325,7 @@ public class Main extends javax.swing.JFrame {
 
         File selectedFile = fileChooser.getSelectedFile();
 
-        try (FileInputStream fis = new FileInputStream(selectedFile);
-             Workbook workbook = new XSSFWorkbook(fis)) {
+        try (FileInputStream fis = new FileInputStream(selectedFile); Workbook workbook = new XSSFWorkbook(fis)) {
 
             Sheet sheet = workbook.getSheetAt(0);
 
@@ -350,11 +350,16 @@ public class Main extends javax.swing.JFrame {
                     for (int c = 0; c < colCount; c++) {
                         Cell cell = row.getCell(c);
                         if (cell != null) {
-                            rowData[c] = switch (cell.getCellType()) {
-                                case NUMERIC -> cell.getNumericCellValue();
-                                case BOOLEAN -> cell.getBooleanCellValue();
-                                default -> cell.toString();
-                            };
+                            switch (cell.getCellType()) {
+                                case NUMERIC:
+                                    rowData[c] = cell.getNumericCellValue();
+                                    break;
+                                case BOOLEAN:
+                                    rowData[c] = cell.getBooleanCellValue();
+                                    break;
+                                default:
+                                    rowData[c] = cell.toString();
+                            }
                         }
                     }
                 }
@@ -389,7 +394,7 @@ public class Main extends javax.swing.JFrame {
         header.setReorderingAllowed(false);
 
         tbFileData.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
-            private final java.awt.Color ODD_ROW  = new java.awt.Color(0xF0F6FF);
+            private final java.awt.Color ODD_ROW = new java.awt.Color(0xF0F6FF);
             private final java.awt.Color EVEN_ROW = java.awt.Color.WHITE;
 
             @Override
@@ -408,22 +413,20 @@ public class Main extends javax.swing.JFrame {
         });
     }
 
+    private final SimpleDateFormat ShowDatefmt = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
 
     private void showDateSelected() {
-        SpinnerDateModel dateModel = new SpinnerDateModel();
-        JSpinner datePicker = new JSpinner(dateModel);
-        datePicker.setEditor(new JSpinner.DateEditor(datePicker, "dd/MM/yyyy"));
+        Point point = btnDateDialog.getLocation();
+        point.setLocation(point.getX(), point.getY());
 
-        int option = JOptionPane.showConfirmDialog(
-                this, datePicker, "Select Date",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (option == JOptionPane.OK_OPTION) {
-            Date selected = (Date) datePicker.getValue();
-            txtDocDate.setText(new SimpleDateFormat("dd/MM/yyyy").format(selected));
+        DateChooseDialog dcd = new DateChooseDialog(new Frame(), true, point);
+        dcd.setVisible(true);
+        
+        if (dcd.getSelectDate() != null) {
+            txtDocDate.setText(ShowDatefmt.format(dcd.getSelectDate().getTime()));
+            txtDocDate.requestFocus();
         }
     }
-
 
     private String getStringValue(javax.swing.table.DefaultTableModel model, int row, String colName) {
         for (int c = 0; c < model.getColumnCount(); c++) {
@@ -439,26 +442,37 @@ public class Main extends javax.swing.JFrame {
         for (int c = 0; c < model.getColumnCount(); c++) {
             if (model.getColumnName(c).equalsIgnoreCase(colName)) {
                 Object val = model.getValueAt(row, c);
-                if (val == null) return 0.0;
-                if (val instanceof Number num) return num.doubleValue();
-                try { return Double.parseDouble(val.toString()); }
-                catch (NumberFormatException ignore) { return 0.0; }
+                if (val == null) {
+                    return 0.0;
+                }
+                if (val instanceof Number) {
+                    return ((Number) val).doubleValue();
+                }
+                try {
+                    return Double.parseDouble(val.toString());
+                } catch (NumberFormatException ignore) {
+                    return 0.0;
+                }
             }
         }
         return 0.0;
     }
 
-    /** ดึงค่า String จาก mapping แล้ว convert ด้วย ThaiUtil.Unicode2ASCII */
+    /**
+     * ดึงค่า String จาก mapping แล้ว convert ด้วย ThaiUtil.Unicode2ASCII
+     */
     private String mappedStr(javax.swing.table.DefaultTableModel model, int row,
-                              Map<String, String> mapping, String field, String defaultVal) {
+            Map<String, String> mapping, String field, String defaultVal) {
         String col = mapping.get(field);
         String val = (col != null) ? getStringValue(model, row, col) : defaultVal;
         return ThaiUtil.Unicode2ASCII(val);
     }
 
-    /** ดึงค่า double จาก mapping หรือใช้ค่า default */
+    /**
+     * ดึงค่า double จาก mapping หรือใช้ค่า default
+     */
     private double mappedDbl(javax.swing.table.DefaultTableModel model, int row,
-                              Map<String, String> mapping, String field, double defaultVal) {
+            Map<String, String> mapping, String field, double defaultVal) {
         String col = mapping.get(field);
         return (col != null) ? getDoubleValue(model, row, col) : defaultVal;
     }
@@ -466,8 +480,8 @@ public class Main extends javax.swing.JFrame {
     // แปลง dd/MM/yyyy → yyyy-MM-dd สำหรับ MySQL
     private String toMysqlDate(String dateStr) {
         try {
-            return new SimpleDateFormat("yyyy-MM-dd")
-                    .format(new SimpleDateFormat("dd/MM/yyyy").parse(dateStr));
+            return new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+                    .format(new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH).parse(dateStr));
         } catch (ParseException ignore) {
             return dateStr;
         }
@@ -479,7 +493,7 @@ public class Main extends javax.swing.JFrame {
             return;
         }
 
-        String docNo   = txtDocumentNo.getText().trim();
+        String docNo = txtDocumentNo.getText().trim();
         String docDate = txtDocDate.getText().trim();
 
         if (docNo.isEmpty()) {
@@ -487,9 +501,7 @@ public class Main extends javax.swing.JFrame {
             return;
         }
 
-        javax.swing.table.DefaultTableModel model =
-                (javax.swing.table.DefaultTableModel) tbFileData.getModel();
-
+        DefaultTableModel model = (DefaultTableModel) tbFileData.getModel();
         if (model.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this, "ไม่มีข้อมูลใน Table", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
@@ -539,7 +551,7 @@ public class Main extends javax.swing.JFrame {
         progressDialog.setLocationRelativeTo(this);
 
         // --- SwingWorker: DB บน background thread, update UI บน EDT ---
-        SwingWorker<Void, Integer> worker = new SwingWorker<>() {
+        SwingWorker<Void, Integer> worker = new SwingWorker<Void, Integer>() {
             @Override
             protected Void doInBackground() throws Exception {
                 Connection conn = DatabaseConnection.getConnection();
@@ -551,10 +563,10 @@ public class Main extends javax.swing.JFrame {
                         total += mappedDbl(model, r, columnMapping, "R_Amount", 0.0);
                     }
 
-                    String headerSql =
-                        "INSERT INTO htranout (R_No, R_Date, R_Remark, R_Bran, R_Total, R_User, R_Post, R_UserPost, R_PostDate, R_PostTime) "
-                      + "VALUES (?, ?, '', '', ?, '', 'N', '', null, '') "
-                      + "ON DUPLICATE KEY UPDATE R_Date=VALUES(R_Date), R_Total=VALUES(R_Total)";
+                    String headerSql
+                            = "INSERT INTO htranout (R_No, R_Date, R_Remark, R_Bran, R_Total, R_User, R_Post, R_UserPost, R_PostDate, R_PostTime) "
+                            + "VALUES (?, ?, '', '', ?, '', 'N', '', null, '') "
+                            + "ON DUPLICATE KEY UPDATE R_Date=VALUES(R_Date), R_Total=VALUES(R_Total)";
 
                     try (PreparedStatement ps = conn.prepareStatement(headerSql)) {
                         ps.setString(1, ThaiUtil.Unicode2ASCII(docNo));
@@ -565,30 +577,30 @@ public class Main extends javax.swing.JFrame {
 
                     // R_No จาก form, R_Que auto-generate, R_Time=CURTIME(), R_EntryDate=CURDATE()
                     // R_Remark, R_RefCode, R_SendInterface, RefCode, R_Pqty = NULL
-                    String detailSql =
-                        "INSERT INTO tranout (R_No, R_Que, R_PCode, R_Stock, R_Pack, R_Qty, R_Post, R_Unit, R_Cost, R_Amount, R_TotalQty, R_User, R_Time, R_EntryDate, R_Remark, R_RefCode, R_SendInterface, RefCode, R_PName, R_Pqty) "
-                      + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURTIME(), CURDATE(), NULL, NULL, NULL, NULL, ?, NULL) "
-                      + "ON DUPLICATE KEY UPDATE "
-                      + "  R_PCode=VALUES(R_PCode), R_Stock=VALUES(R_Stock), R_Pack=VALUES(R_Pack), "
-                      + "  R_Qty=VALUES(R_Qty), R_Post=VALUES(R_Post), R_Unit=VALUES(R_Unit), "
-                      + "  R_Cost=VALUES(R_Cost), R_Amount=VALUES(R_Amount), R_TotalQty=VALUES(R_TotalQty), "
-                      + "  R_User=VALUES(R_User), R_PName=VALUES(R_PName)";
+                    String detailSql
+                            = "INSERT INTO tranout (R_No, R_Que, R_PCode, R_Stock, R_Pack, R_Qty, R_Post, R_Unit, R_Cost, R_Amount, R_TotalQty, R_User, R_Time, R_EntryDate, R_Remark, R_RefCode, R_SendInterface, RefCode, R_PName, R_Pqty) "
+                            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURTIME(), CURDATE(), NULL, NULL, NULL, NULL, ?, NULL) "
+                            + "ON DUPLICATE KEY UPDATE "
+                            + "  R_PCode=VALUES(R_PCode), R_Stock=VALUES(R_Stock), R_Pack=VALUES(R_Pack), "
+                            + "  R_Qty=VALUES(R_Qty), R_Post=VALUES(R_Post), R_Unit=VALUES(R_Unit), "
+                            + "  R_Cost=VALUES(R_Cost), R_Amount=VALUES(R_Amount), R_TotalQty=VALUES(R_TotalQty), "
+                            + "  R_User=VALUES(R_User), R_PName=VALUES(R_PName)";
 
                     try (PreparedStatement ps = conn.prepareStatement(detailSql)) {
                         for (int r = 0; r < model.getRowCount(); r++) {
-                            ps.setString(1,  ThaiUtil.Unicode2ASCII(docNo));
-                            ps.setInt   (2,  r + 1);
-                            ps.setString(3,  mappedStr(model, r, columnMapping, "R_PCode",    ""));
-                            ps.setString(4,  mappedStr(model, r, columnMapping, "R_Stock",    ""));
-                            ps.setDouble(5,  mappedDbl(model, r, columnMapping, "R_Pack",     1.0));
-                            ps.setDouble(6,  mappedDbl(model, r, columnMapping, "R_Qty",      0.0));
-                            ps.setString(7,  mappedStr(model, r, columnMapping, "R_Post",     "N"));
-                            ps.setString(8,  mappedStr(model, r, columnMapping, "R_Unit",     ""));
-                            ps.setDouble(9,  mappedDbl(model, r, columnMapping, "R_Cost",     0.0));
-                            ps.setDouble(10, mappedDbl(model, r, columnMapping, "R_Amount",   0.0));
+                            ps.setString(1, ThaiUtil.Unicode2ASCII(docNo));
+                            ps.setInt(2, r + 1);
+                            ps.setString(3, mappedStr(model, r, columnMapping, "R_PCode", ""));
+                            ps.setString(4, mappedStr(model, r, columnMapping, "R_Stock", ""));
+                            ps.setDouble(5, mappedDbl(model, r, columnMapping, "R_Pack", 1.0));
+                            ps.setDouble(6, mappedDbl(model, r, columnMapping, "R_Qty", 0.0));
+                            ps.setString(7, mappedStr(model, r, columnMapping, "R_Post", "N"));
+                            ps.setString(8, mappedStr(model, r, columnMapping, "R_Unit", ""));
+                            ps.setDouble(9, mappedDbl(model, r, columnMapping, "R_Cost", 0.0));
+                            ps.setDouble(10, mappedDbl(model, r, columnMapping, "R_Amount", 0.0));
                             ps.setDouble(11, mappedDbl(model, r, columnMapping, "R_TotalQty", 0.0));
-                            ps.setString(12, mappedStr(model, r, columnMapping, "R_User",     ""));
-                            ps.setString(13, mappedStr(model, r, columnMapping, "R_PName",    ""));
+                            ps.setString(12, mappedStr(model, r, columnMapping, "R_User", ""));
+                            ps.setString(13, mappedStr(model, r, columnMapping, "R_PName", ""));
                             ps.addBatch();
                             publish(r + 1);
                         }
@@ -598,10 +610,16 @@ public class Main extends javax.swing.JFrame {
                     conn.commit();
 
                 } catch (SQLException ex) {
-                    try { conn.rollback(); } catch (SQLException ignore) {}
+                    try {
+                        conn.rollback();
+                    } catch (SQLException ignore) {
+                    }
                     throw ex;
                 } finally {
-                    try { conn.setAutoCommit(true); } catch (SQLException ignore) {}
+                    try {
+                        conn.setAutoCommit(true);
+                    } catch (SQLException ignore) {
+                    }
                 }
                 return null;
             }
@@ -623,7 +641,9 @@ public class Main extends javax.swing.JFrame {
                             "Success", JOptionPane.INFORMATION_MESSAGE);
                 } catch (java.util.concurrent.ExecutionException ex) {
                     Throwable cause = ex.getCause();
-                    if (cause == null) cause = ex;
+                    if (cause == null) {
+                        cause = ex;
+                    }
                     logger.log(Level.SEVERE, "Failed to save data", cause);
                     JOptionPane.showMessageDialog(Main.this,
                             "เกิดข้อผิดพลาด: " + cause.getMessage(),
@@ -642,10 +662,12 @@ public class Main extends javax.swing.JFrame {
     private void changeThemeApp() {
         String selected = (String) cbChangeTheme.getSelectedItem();
         try {
-            javax.swing.LookAndFeel laf = switch (selected) {
-                case "FlatDarkLaf"  -> new com.formdev.flatlaf.FlatDarkLaf();
-                default             -> new com.formdev.flatlaf.FlatLightLaf();
-            };
+            javax.swing.LookAndFeel laf;
+            if ("FlatDarkLaf".equals(selected)) {
+                laf = new com.formdev.flatlaf.FlatDarkLaf();
+            } else {
+                laf = new com.formdev.flatlaf.FlatLightLaf();
+            }
             javax.swing.UIManager.setLookAndFeel(laf);
             applyThaiFont();
             javax.swing.SwingUtilities.updateComponentTreeUI(this);

@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>21</maven.compiler.release>
+        <maven.compiler.release>8</maven.compiler.release>
         <exec.mainClass>com.ics.utils.importexcelfile.Main</exec.mainClass>
     </properties>
     <build>
@@ -64,7 +64,7 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>5.3.0</version>
+            <version>4.1.2</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
